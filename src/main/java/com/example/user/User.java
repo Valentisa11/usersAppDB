@@ -2,6 +2,7 @@ package com.example.user;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 @Entity
 @Table(name = "users")
@@ -27,13 +28,33 @@ public class User {
         this.createdAt = LocalDateTime.now();
     }
 
-    public User(String name, String email, int age) {
+    public User(long id, String name, String email, int age) {
         this.name = name;
         this.email = email;
         this.age = age;
         this.createdAt = LocalDateTime.now();
     }
 
+    public User(String toDelete, String email, int age) {
+        this.email = email;
+        this.age = age;
+
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return age == user.age &&
+                Objects.equals(name, user.name) &&
+                Objects.equals(email, user.email);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(name, email, age);
+    }
 
     public Long getId() { // геттеры и сеттеры
         return id;
