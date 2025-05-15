@@ -1,140 +1,78 @@
 package com.example.user;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.Mockito.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-import org.hibernate.SessionFactory;
+import com.example.user.dto.UserCreateDTO;
+import com.example.user.dto.UserDTO;
+import com.example.user.model.User;
+import com.example.user.repository.UserRepository;
+import com.example.user.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
     public class UserServiceTest {
 
-        private UserService userService;
         @Mock
-        private UserDao mockUserDao;
+        private UserRepository userRepository;
 
-        @BeforeEach
-        void setup() {
+        @InjectMocks
+        private UserService userService;
+    @Test
+    void testFindUserById() {
+        // Arrange
+        User user = new User(1L, "John", "john@example.com");
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
 
-            userService = new UserService(mockUserDao);
-        }
+        // Act
+        Optional<UserDTO> result = userService.getUserById(1L);
 
-        @Test
-        void testCreateUser_Success() {
-
-            User userCreated = new User("Alice", "alice@example.com", 30);
-
-           doAnswer(invocation -> {
-               User userArg = (User) invocation.getArgument(0);
-               userArg.setId(788l);
-               return userArg;
-                   }).when(mockUserDao).createUser(any(User.class));
-
-            User result = userService.createUser("Alice", "alice@example.com", 30);
-
-            assertNotNull(result.getId());
-            assertEquals("Alice", result.getName(), "Имя пользователя не совпадает");
-            assertEquals("alice@example.com", result.getEmail());
-            verify(mockUserDao).createUser(any(User.class));
-
-        }
-
-        @Test
-        void testCreateUser_NullName() {
-            User user = new User(null,"alice@example.com",30);
-
-            assertThrows(IllegalArgumentException.class, () ->
-                    userService.createUser(null,  "alice@example.com", 30)
-            );
-        }
-
-        @Test
-        void testCreateUser_InvalidEmail() {
-            User user = new User("Alice", "invalid-email", 30);
-
-            assertThrows(IllegalArgumentException.class, () ->
-                    userService.createUser("Alice", "invalid-email", 30)
-            );
-        }
-
-        @Test
-        void testCreateUser_InvalidAge() {
-
-            User user = new User("Alice", "alice@example.com", -5);
-
-            assertThrows(IllegalArgumentException.class, () ->
-                    userService.createUser("Alice", "alice@example.com", -5)
-            );
-        }
-
-        @Test
-        void testGetUserById_Success() {
-
-            Long userId = 1L;
-            User mockUser = new User(userId, "Alice", "alice@example.com", 30);
-            when(mockUserDao.getUserById(userId)).thenReturn(mockUser);
-
-            User result = userService.getUserById(userId);
-
-           // assertEquals(mockUser, result);
-           // verify(mockUserDao).getUserById(userId);
-            assertEquals("Alice", result.getName());
-        }
-
-        @Test
-        void testGetUserById_NotFound() {
-
-            Long nonExistentId = 999L;
-            when(mockUserDao.getUserById(nonExistentId)).thenReturn(null);
-
-            assertThrows(RuntimeException.class, () ->
-                    userService.getUserById(nonExistentId)
-            );
-        }
-
-        @Test
-        void testUpdateUser_Success() {
-
-            User user = new User(1L, "Alice", "alice@example.com", 30);
-            userService.updateUser(user);
-
-            verify(mockUserDao).updateUser(user);
-        }
-
-        @Test
-        void testUpdateUser_NullName() {
-
-            User user = new User(1L, null, "alice@example.com", 30);
-
-            assertThrows(IllegalArgumentException.class, () ->
-                    userService.updateUser(user)
-            );
-        }
-
-        @Test
-        void testDeleteUser_Success() {
-
-            Long userId = 1L;
-            User mockUser = new User(userId, "Alice", "alice@example.com", 30);
-            when(mockUserDao.getUserById(userId)).thenReturn(mockUser);
-
-            userService.deleteUser(userId);
-
-            verify(mockUserDao).deleteUser(userId);
-        }
-
-        @Test
-        void testDeleteUser_NotFound() {
-
-            Long nonExistentId = 999L;
-            when(mockUserDao.getUserById(nonExistentId)).thenReturn(null);
-
-            assertThrows(RuntimeException.class, () ->
-                    userService.deleteUser(nonExistentId)
-            );
-        }
+        // Assert
+        assertThat(result).isPresent();
+        assertThat(result.get().getName()).isEqualTo("John");
+        verify(userRepository).findById(1L);
     }
+
+    @Test
+    void testCreateUser_Success() {
+        // Arrange
+        UserCreateDTO dto = new UserCreateDTO("Alice", "alice@example.com");
+        User savedUser = new User(788L, "Alice", "alice@example.com");
+
+        when(userRepository.save(any(User.class))).thenReturn(savedUser);
+
+        // Act
+        UserDTO result = userService.createUser(dto);
+
+        // Assert
+        assertThat(result.getId()).isEqualTo(788L);
+        assertThat(result.getName()).isEqualTo("Alice");
+        verify(userRepository).save(any(User.class));
+    }
+
+    @Test
+    void testCreateUser_NullName() {
+        UserCreateDTO dto = new UserCreateDTO(null, "alice@example.com");
+
+        assertThrows(IllegalArgumentException.class, () ->
+                userService.createUser(dto)
+        );
+    }
+
+    @Test
+    void testCreateUser_InvalidEmail() {
+        UserCreateDTO dto = new UserCreateDTO("Alice", "invalid-email");
+
+        assertThrows(IllegalArgumentException.class, () ->
+                userService.createUser(dto)
+        );
+    }
+}

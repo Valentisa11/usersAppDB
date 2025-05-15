@@ -1,9 +1,12 @@
-package com.example.user;
+package com.example.user.model;
 
 import jakarta.persistence.*;
+import lombok.Data;
+
 import java.time.LocalDateTime;
 import java.util.Objects;
 
+@Data
 @Entity
 @Table(name = "users")
 public class User {
@@ -39,6 +42,9 @@ public class User {
         this.email = email;
         this.age = age;
 
+    }
+
+    public User(long l, String john, String mail) {
     }
 
     @Override
