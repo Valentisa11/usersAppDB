@@ -16,23 +16,33 @@ import java.util.List;
 public class UserController {
     private UserService userService;
 
-    @GetMapping
-    public List<UserDTO> getAllUsers() {
-        return userService.getAllUsers();
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
-        return userService.getUserById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
-    }
-
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public UserDTO createUser(@RequestBody UserCreateDTO dto) {
         return userService.createUser(dto);
     }
+
+    @Operation(summary = "Получить список всех пользователей",
+            description = "Возвращает все зарегистрированные пользователи",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Успешный запрос",
+                            content = @Content(schema = @Schema(implementation = User.class))),
+                    @ApiResponse(responseCode = "404", description = "Пользователи не найдены")
+            })
+    @GetMapping
+    public List<User> getAllUsers() {
+        return userService.findAll();
+    }
+}
+
+@GetMapping("/{id}")
+public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
+    return userService.getUserById(id)
+            .map(ResponseEntity::ok)
+            .orElse(ResponseEntity.notFound().build());
+}
+
+
 
     @PutMapping("/{id}")
     public ResponseEntity<UserDTO> updateUser(@PathVariable Long id, @RequestBody UserCreateDTO dto) {
