@@ -1,0 +1,18 @@
+spring:
+  kafka:
+    topic: user-events
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+      server:
+        port: 8081
+      spring:
+        datasource:
+          url: jdbc:postgresql://localhost:5432/userdb
+          username: postgres
+          password: postgres
+        jpa:
+          hibernate:
+            ddl-auto: update

@@ -1,0 +1,7 @@
+server:
+  port: 8082
+spring:
+  mail:
+    host: smtp.example.com
+    username: user
+    password: pass
